@@ -190,21 +190,30 @@ const userModel = require("../models/users");
 const otpModel = require("../models/otp");
 const { userSignUpMsg, signUpOtp } = require("../utils/emails/auth");
 const StatusCode = require("../utils/statusCode");
-const { generateToken, generateOtp } = require("../utils/generateTokens");
+const { generateToken, generateOTP } = require("../utils/generateTokens");
 const bcrypt = require("bcrypt");
 
 const getOTP = async (req, res, next) => {
     const { email } = req.body;
-    const OTP = await generateOtp();
+    const OTP = await generateOTP();
     console.log(OTP);
 
     await otpModel.create({
         email: email,
-        otp: OTP,
+        code: OTP,  // Change this line
         type: "Signup",
         created_at: new Date(),
-        otpExpiresAt: Date.now() + 5 * 60 * 1000
+        otpExpiresAt: new Date(Date.now() + 60 * 60 * 1000)  // Make sure this is a Date object
     });
+    
+
+    // await otpModel.create({
+    //     email: email,
+    //     otp: OTP,
+    //     type: "Signup",
+    //     created_at: new Date(),
+    //     otpExpiresAt: Date.now() + 60 * 60 * 1000
+    // });
 
     await signUpOtp(email, OTP);
 
@@ -222,11 +231,11 @@ const resendOTP = async (req, res, next) => {
         await otpModel.deleteMany({ email: otpExist.email });
     }
 
-    const OTP = await generateOtp();
+    const OTP = await generateOTP();
 
     await otpModel.create({
         email: email,
-        otp: OTP,
+        code: OTP,
         type: "Signup",
         created_at: new Date(),
         otpExpiresAt: Date.now() + 5 * 60 * 1000
@@ -242,7 +251,7 @@ const resendOTP = async (req, res, next) => {
 
 const validateOTP = async (req, res) => {
     const { email, code } = req.body;
-    const otpExist = await otpModel.findOne({ otp: code });
+    const otpExist = await otpModel.findOne({ code: code });
 
     if (!otpExist) {
         return res.status(StatusCode.BAD_REQUEST).json({
@@ -266,22 +275,75 @@ const validateOTP = async (req, res) => {
     });
 };
 
+
+
+// const validateOTP = async (req, res) => {
+//     const { email, code } = req.body;
+//     console.log(`Received email: ${email}, code: ${code}, type of code: ${typeof code}`);
+
+//     try {
+//         // Convert the code to a string before querying
+//         const stringCode = String(code);
+//         console.log(`Query executed: otpModel.findOne({ code: ${stringCode} })`);
+
+//         const otpExist = await otpModel.findOne({ code: stringCode });
+//         console.log(`OTP found: ${otpExist}`);
+
+//         if (!otpExist) {
+//             return res.status(StatusCode.BAD_REQUEST).json({
+//                 status: false,
+//                 message: "Invalid OTP"
+//             });
+//         }
+
+//         if (otpExist.email !== email) {
+//             return res.status(StatusCode.BAD_REQUEST).json({
+//                 status: false,
+//                 message: "Invalid credentials"
+//             });
+//         }
+
+//         await otpModel.deleteOne({ code: stringCode });
+
+//         return res.status(StatusCode.OK).json({
+//             status: true,
+//             message: "OTP successfully validated",
+//         });
+//     } catch (error) {
+//         console.error(`Error during OTP validation: ${error}`);
+//         return res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
+//             status: false,
+//             message: "An error occurred during OTP validation"
+//         });
+//     }
+// };
+
+
 const signUp = async (req, res, next) => {
     const { email, password } = req.body;
 
-    if (!email) {
+    const userExist = await userModel.findOne({ emai : email});
+
+    if(userExist) {
         return res.status(StatusCode.BAD_REQUEST).json({
-            status: false,
-            message: "Email is required"
-        });
+                     status: false,
+                     message: "User already exist"
+         });
     }
 
-    if (!password) {
-        return res.status(StatusCode.BAD_REQUEST).json({
-            status: false,
-            message: "Password is required"
-        });
-    }
+    // if (!email) {
+    //     return res.status(StatusCode.BAD_REQUEST).json({
+    //         status: false,
+    //         message: "Email is required"
+    //     });
+    // }
+
+    // if (!password) {
+    //     return res.status(StatusCode.BAD_REQUEST).json({
+    //         status: false,
+    //         message: "Password is required"
+    //     });
+    // }
 
     const salt = await bcrypt.genSaltSync(10);
     const hashedPassword = await bcrypt.hashSync(password, salt);
@@ -335,11 +397,15 @@ const signIn = async (req, res, next) => {
         });
     }
 
+    //JWT
+    const token = await generateToken(userExist);
+
     return res.status(StatusCode.CREATED).json({
         status: true,
         msg: "Welcome to Resida",
         data: {
             userExist,
+            token
         },
     });
 };
