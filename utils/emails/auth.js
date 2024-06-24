@@ -84,7 +84,7 @@ exports.signUpOtp = async(email, OTP) => {
          </b>
          `, 
        })
-   }catch{
-    console.log("error in sending mail");
+   }catch (error){
+    console.log("error in sending mail", error);
    }
 }

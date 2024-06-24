@@ -1,6 +1,6 @@
 const jwt = require("jsonwebtoken");
 const { JWT_SECRET } = require("../config/envconfig");
-//const otpGenerator = require("otp-generator");
+const otpGenerator = require("otp-generator");
 
 
 
