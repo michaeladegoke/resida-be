@@ -249,74 +249,74 @@ const resendOTP = async (req, res, next) => {
     });
 };
 
-const validateOTP = async (req, res) => {
-    const { email, code } = req.body;
-    const otpExist = await otpModel.findOne({ code: code });
-
-    if (!otpExist) {
-        return res.status(StatusCode.BAD_REQUEST).json({
-            status: false,
-            message: "Invalid OTP"
-        });
-    }
-
-    if (otpExist.email !== email) {
-        return res.status(StatusCode.BAD_REQUEST).json({
-            status: false,
-            message: "Invalid credentials"
-        });
-    }
-
-    await otpModel.deleteOne({ otp: code });
-
-    return res.status(StatusCode.OK).json({
-        status: true,
-        message: "OTP successfully validated",
-    });
-};
-
-
-
 // const validateOTP = async (req, res) => {
 //     const { email, code } = req.body;
-//     console.log(`Received email: ${email}, code: ${code}, type of code: ${typeof code}`);
+//     const otpExist = await otpModel.findOne({ code: code });
 
-//     try {
-//         // Convert the code to a string before querying
-//         const stringCode = String(code);
-//         console.log(`Query executed: otpModel.findOne({ code: ${stringCode} })`);
-
-//         const otpExist = await otpModel.findOne({ code: stringCode });
-//         console.log(`OTP found: ${otpExist}`);
-
-//         if (!otpExist) {
-//             return res.status(StatusCode.BAD_REQUEST).json({
-//                 status: false,
-//                 message: "Invalid OTP"
-//             });
-//         }
-
-//         if (otpExist.email !== email) {
-//             return res.status(StatusCode.BAD_REQUEST).json({
-//                 status: false,
-//                 message: "Invalid credentials"
-//             });
-//         }
-
-//         await otpModel.deleteOne({ code: stringCode });
-
-//         return res.status(StatusCode.OK).json({
-//             status: true,
-//             message: "OTP successfully validated",
-//         });
-//     } catch (error) {
-//         console.error(`Error during OTP validation: ${error}`);
-//         return res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
+//     if (!otpExist) {
+//         return res.status(StatusCode.BAD_REQUEST).json({
 //             status: false,
-//             message: "An error occurred during OTP validation"
+//             message: "Invalid OTP"
 //         });
 //     }
+
+//     if (otpExist.email !== email) {
+//         return res.status(StatusCode.BAD_REQUEST).json({
+//             status: false,
+//             message: "Invalid credentials"
+//         });
+//     }
+
+//     await otpModel.deleteOne({ otp: code });
+
+//     return res.status(StatusCode.OK).json({
+//         status: true,
+//         message: "OTP successfully validated",
+//     });
 // };
+
+
+
+const validateOTP = async (req, res) => {
+    const { email, code } = req.body;
+    console.log(`Received email: ${email}, code: ${code}, type of code: ${typeof code}`);
+
+    try {
+        //Convert the code to a string before querying
+        const stringCode = String(code);
+        console.log(`Query executed: otpModel.findOne({ code: ${stringCode} })`);
+
+        const otpExist = await otpModel.findOne({ code: code });
+        console.log(`OTP found: ${otpExist}`);
+
+        if (!otpExist) {
+            return res.status(StatusCode.BAD_REQUEST).json({
+                status: false,
+                message: "Invalid OTP"
+            });
+        }
+
+        if (otpExist.email !== email) {
+            return res.status(StatusCode.BAD_REQUEST).json({
+                status: false,
+                message: "Invalid credentials"
+            });
+        }
+
+        await otpModel.deleteOne({ code: stringCode });
+
+        return res.status(StatusCode.OK).json({
+            status: true,
+            message: "OTP successfully validated",
+        });
+    } catch (error) {
+        console.error(`Error during OTP validation: ${error}`);
+        return res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
+            status: false,
+            message: "An error occurred during OTP validation"
+        });
+    }
+};
 
 
 const signUp = async (req, res, next) => {
