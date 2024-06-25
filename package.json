@@ -5,11 +5,12 @@
   "main": "app.js",
   "scripts": {
     "dev": "nodemon app.js",
-    "start": "node app.js"
+    "start": "node app.js",
+      "postinstall": "npm rebuild"
   },
   "engines": {
     "node": "18.18.0"
-  },
+  },  
   "keywords": [],
   "author": "",
   "license": "ISC",
