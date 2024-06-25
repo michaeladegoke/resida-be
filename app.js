@@ -6,7 +6,6 @@ const app = express()
 
 const { PORT } = require("./config/envconfig.js");
 
-//const PORT = process.env.PORT || 3000;
 
 require("./operations/routes")(app);
 require("./operations/db")(app);
